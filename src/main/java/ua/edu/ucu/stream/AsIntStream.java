@@ -41,7 +41,7 @@ public class AsIntStream implements IntStream {
     }
 
     @Override
-    public Double average() {
+    public double average() {
         int sum = 0;
         int size = 0;
         while (integerIterator.hasNext()) {
@@ -52,12 +52,12 @@ public class AsIntStream implements IntStream {
     }
 
     @Override
-    public Integer max() {
+    public int max() {
         return reduce((int) Double.NEGATIVE_INFINITY, Math::max);
     }
 
     @Override
-    public Integer min() {
+    public int min() {
         return reduce((int) Double.POSITIVE_INFINITY, Math::min);
     }
 
@@ -67,7 +67,7 @@ public class AsIntStream implements IntStream {
     }
 
     @Override
-    public Integer sum() {
+    public int sum() {
         return reduce(0, Integer::sum);
     }
 
