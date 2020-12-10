@@ -5,6 +5,8 @@ import ua.edu.ucu.stream.IntStream;
 
 public class StreamApp {
 
+    private StreamApp() {}
+
     public static int streamOperations(IntStream intStream) {
         //IntStream intStream = AsIntStream.of(-1, 0, 1, 2, 3); // input values
         int res = intStream

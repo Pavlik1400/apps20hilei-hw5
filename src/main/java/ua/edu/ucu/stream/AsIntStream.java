@@ -15,10 +15,10 @@ import java.util.List;
 
 
 public class AsIntStream implements IntStream {
-    private final Iterator<Integer> integerIterator;
+    private final Iterator<Integer> intIter;
 
     private AsIntStream(Iterator<Integer> iterator) {
-        integerIterator = iterator;
+        intIter = iterator;
     }
 
     public static IntStream of(int... values) {
@@ -44,8 +44,8 @@ public class AsIntStream implements IntStream {
     public double average() {
         int sum = 0;
         int size = 0;
-        while (integerIterator.hasNext()) {
-            sum += integerIterator.next();
+        while (intIter.hasNext()) {
+            sum += intIter.next();
             size++;
         }
         return (double) sum / size;
@@ -74,44 +74,33 @@ public class AsIntStream implements IntStream {
     @Override
     public IntStream filter(IntPredicate predicate) {
         return new AsIntStream(new Iterator<Integer>() {
-            private boolean nextValIsActual = false;
             private int nextVal;
             @Override
             public boolean hasNext() {
-                if (nextValIsActual) {
-                    return true;
-                }
-                if (integerIterator.hasNext()) {
-                    int val = integerIterator.next();
-                    while (!predicate.test(val)) {
-                        if (integerIterator.hasNext()) {
-                            val = integerIterator.next();
+                if (intIter.hasNext()) {
+                    nextVal = intIter.next();
+                    while (!predicate.test(nextVal)) {
+                        if (intIter.hasNext()) {
+                            nextVal = intIter.next();
                         } else {
                             return false;
                         }
                     }
-                    nextVal = val;
-                    nextValIsActual = true;
                     return true;
                 }
                 return false;
             }
-
             @Override
             public Integer next() {
-                if (!nextValIsActual) {
-                    hasNext();
-                }
-                nextValIsActual = false;
                 return nextVal;
-            };
+            }
         });
     }
 
     @Override
     public void forEach(IntConsumer action) {
-        while (integerIterator.hasNext()) {
-            action.accept(integerIterator.next());
+        while (intIter.hasNext()) {
+            action.accept(intIter.next());
         }
     }
 
@@ -120,37 +109,36 @@ public class AsIntStream implements IntStream {
         return new AsIntStream(new Iterator<Integer>() {
             @Override
             public boolean hasNext() {
-                return integerIterator.hasNext();
+                return intIter.hasNext();
             }
 
             @Override
             public Integer next() {
-                return mapper.apply(integerIterator.next());
+                return mapper.apply(intIter.next());
             }
         });
     }
 
     @Override
     public IntStream flatMap(IntToIntStreamFunction func) {
+        // counter represents number of vales that should be returned from
+        // tmpArr if counter == 0 - then we should take next value from
+        // original iterator
         return new AsIntStream(new Iterator<Integer>() {
             private int[] tmpArr;   // array, where mapped values are saved.
-            // represents number of vales that should be returned from tmpArr
-            // if counter == 0 - then we should take next value from original
-            // iterator
             private int counter = 0;
             @Override
             public boolean hasNext() {
                 if (counter != 0) {
                     return true;
                 }
-                return integerIterator.hasNext();
+                return intIter.hasNext();
             }
 
             @Override
             public Integer next() {
                 if (counter == 0) {
-                    tmpArr = func.applyAsIntStream(integerIterator.next())
-                            .toArray();
+                    tmpArr = func.applyAsIntStream(intIter.next()).toArray();
                     counter = tmpArr.length;
                 }
                 return tmpArr[tmpArr.length-(counter--)];
@@ -161,8 +149,8 @@ public class AsIntStream implements IntStream {
     @Override
     public int reduce(int identity, IntBinaryOperator op) {
         int result = identity;
-        while (integerIterator.hasNext()) {
-            result = op.apply(result, integerIterator.next());
+        while (intIter.hasNext()) {
+            result = op.apply(result, intIter.next());
         }
         return result;
     }
@@ -171,8 +159,8 @@ public class AsIntStream implements IntStream {
     @Override
     public int[] toArray() {
         List<Integer> res = new ArrayList<>();
-        while (integerIterator.hasNext()) {
-            res.add(integerIterator.next());
+        while (intIter.hasNext()) {
+            res.add(intIter.next());
         }
         int[] finalRes = new int[res.size()];
         for (int i = 0; i < res.size(); i++) {
