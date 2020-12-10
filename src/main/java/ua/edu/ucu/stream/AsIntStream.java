@@ -1,19 +1,24 @@
 package ua.edu.ucu.stream;
 
-import ua.edu.ucu.function.*;
+
+import ua.edu.ucu.function.IntBinaryOperator;
+import ua.edu.ucu.function.IntPredicate;
+import ua.edu.ucu.function.IntConsumer;
+import ua.edu.ucu.function.IntToIntStreamFunction;
+import ua.edu.ucu.function.IntUnaryOperator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.List;
 
+
 public class AsIntStream implements IntStream {
-//    private int[] container;
-    Iterator<Integer> integerIterator;
+    private final Iterator<Integer> integerIterator;
 
     private AsIntStream(Iterator<Integer> iterator) {
         integerIterator = iterator;
-
     }
 
     public static IntStream of(int... values) {
@@ -27,6 +32,9 @@ public class AsIntStream implements IntStream {
 
             @Override
             public Integer next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
                 return valuesCopy[counter++];
             }
         });
@@ -66,8 +74,8 @@ public class AsIntStream implements IntStream {
     @Override
     public IntStream filter(IntPredicate predicate) {
         return new AsIntStream(new Iterator<Integer>() {
-            boolean nextValIsActual = false;
-            int nextVal;
+            private boolean nextValIsActual = false;
+            private int nextVal;
             @Override
             public boolean hasNext() {
                 if (nextValIsActual) {
@@ -126,9 +134,10 @@ public class AsIntStream implements IntStream {
     public IntStream flatMap(IntToIntStreamFunction func) {
         return new AsIntStream(new Iterator<Integer>() {
             private int[] tmpArr;   // array, where mapped values are saved.
-            private int counter = 0;    // represents number of vales that should be returned from tmpArr
-                                        // if counter == 0 - then we should take next value from original
-                                        // iterator
+            // represents number of vales that should be returned from tmpArr
+            // if counter == 0 - then we should take next value from original
+            // iterator
+            private int counter = 0;
             @Override
             public boolean hasNext() {
                 if (counter != 0) {
@@ -140,7 +149,8 @@ public class AsIntStream implements IntStream {
             @Override
             public Integer next() {
                 if (counter == 0) {
-                    tmpArr = func.applyAsIntStream(integerIterator.next()).toArray();
+                    tmpArr = func.applyAsIntStream(integerIterator.next())
+                            .toArray();
                     counter = tmpArr.length;
                 }
                 return tmpArr[tmpArr.length-(counter--)];
