@@ -92,9 +92,6 @@ public class AsIntStream implements IntStream {
             }
             @Override
             public Integer next() {
-                if (!hasNext()) {
-                    throw new NoSuchElementException();
-                }
                 return nextVal;
             }
         });
